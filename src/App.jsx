@@ -26,12 +26,11 @@ const App = () => {
       });
     });
     console.log("Polygon coordinates:", coordinates);
-
-    // Optionally, remove the polygon after storing its coordinates
     // polygon.setMap(null);
   }, []);
 
   const onMapClick = (e) => {
+    setMarker([])
     setMarker((current) => [
       ...current,
       {
