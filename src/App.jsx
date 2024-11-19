@@ -1,12 +1,13 @@
-import { DrawingManagerF, GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { DrawingManagerF, GoogleMap, LoadScript, Marker, Polygon } from "@react-google-maps/api";
 import React, { useCallback, useRef, useState } from "react";
 
 const App = () => {
   const [isLibrariesLoaded, setIsLibrariesLoaded] = useState(false);
-  const [markers, setMarker] = useState([])
+  const [markers, setMarker] = useState([]);
   const drawingManagerRef = useRef(null);
   const currentPolygon = useRef(null); // Store the current polygon instance
   const canDrawPolygon = useRef(true); // Flag to control if drawing is allowed
+  const [manualPolygon, setManualPolygon] = useState(null); // State to store manual polygon coordinates
 
   const mapContainerStyle = {
     height: "100vh",
@@ -46,17 +47,16 @@ const App = () => {
       });
     });
     console.log("Polygon coordinates:", coordinates);
-    // polygon.setMap(null);
   }, []);
 
   const onMapClick = (e) => {
-    setMarker([])
+    setMarker([]);
     setMarker((current) => [
       ...current,
       {
         lat: e.latLng.lat(),
-        lng: e.latLng.lng()
-      }
+        lng: e.latLng.lng(),
+      },
     ]);
   };
 
@@ -77,7 +77,17 @@ const App = () => {
     console.log("Polygon reset. Ready to draw a new one.");
   };
 
-  console.log(markers)
+  const setManualPolygonHandler = () => {
+    // Example coordinates for a manual polygon
+    const coordinates = [
+      {lat: 20.627409436883116, lng: 78.98820288067645}, 
+      {lat: 20.628694682313736, lng: 79.04862768536395},
+      {lat: 20.587722146769398, lng: 79.04965765362567},
+      {lat: 20.58691865361481, lng: 78.99009115582294},
+    ];
+    setManualPolygon(coordinates);
+    //resetPolygon(); // Reset any existing polygons
+  };
 
   return (
     <LoadScript
@@ -91,7 +101,7 @@ const App = () => {
         zoom={13}
         onClick={onMapClick}
       >
-        {isLibrariesLoaded && (
+        {isLibrariesLoaded && canDrawPolygon.current && (
           <DrawingManagerF
             ref={drawingManagerRef}
             onPolygonComplete={onPolygonComplete}
@@ -130,12 +140,41 @@ const App = () => {
         >
           Reset Polygon
         </button>
+        <button
+          onClick={setManualPolygonHandler}
+          style={{
+            position: "absolute",
+            top: "120px",
+            left: "10px",
+            zIndex: 5,
+            padding: "10px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Set Manual Polygon
+        </button>
+        {manualPolygon && (
+          <Polygon
+            paths={manualPolygon}
+            options={{
+              fillColor: "#f44336",
+              fillOpacity: 0.35,
+              strokeColor: "#f44336",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+            }}
+          />
+        )}
         {markers?.map((marker, idx) => (
           <Marker
             key={idx}
             position={{
               lat: marker.lat,
-              lng: marker.lng
+              lng: marker.lng,
             }}
             draggable={true}
           />
