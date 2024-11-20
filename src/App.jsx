@@ -4,10 +4,11 @@ import React, { useCallback, useRef, useState } from "react";
 const App = () => {
   const [isLibrariesLoaded, setIsLibrariesLoaded] = useState(false);
   const [markers, setMarker] = useState([]);
+  const [staticMarker, setStaticMarker] = useState(null);
   const drawingManagerRef = useRef(null);
-  const currentPolygon = useRef(null); // Store the current polygon instance
-  const canDrawPolygon = useRef(true); // Flag to control if drawing is allowed
-  const [manualPolygon, setManualPolygon] = useState(null); // State to store manual polygon coordinates
+  const currentPolygon = useRef(null);
+  const canDrawPolygon = useRef(true);
+  const [manualPolygon, setManualPolygon] = useState(null);
 
   const mapContainerStyle = {
     height: "100vh",
@@ -20,22 +21,14 @@ const App = () => {
   };
 
   const onPolygonComplete = useCallback((polygonInstance) => {
-    // If a polygon already exists, immediately stop drawing and return
     if (!canDrawPolygon.current) {
       polygonInstance.setMap(null);
       return;
     }
-    // Store the new polygon
     currentPolygon.current = polygonInstance;
-
-    console.log("Polygon drawn");
-
-    // Disable further polygon drawing until reset
     canDrawPolygon.current = false;
-
-    // Stop drawing mode
     if (drawingManagerRef.current) {
-      drawingManagerRef.current.setDrawingMode(null); // Disable drawing mode after the polygon is drawn
+      drawingManagerRef.current.setDrawingMode(null);
     }
 
     const path = polygonInstance.getPath();
@@ -61,14 +54,13 @@ const App = () => {
   };
 
   const resetPolygon = () => {
-    // Remove the current polygon from the map if it exists
+    setManualPolygon([]);
+    setStaticMarker(null);
     if (currentPolygon.current) {
       console.log("Resetting polygon...");
       currentPolygon.current.setMap(null);
       currentPolygon.current = null;
     }
-
-    // Re-enable drawing mode by setting the flag and re-enabling DrawingManager
     canDrawPolygon.current = true;
     if (drawingManagerRef.current) {
       drawingManagerRef.current.setDrawingMode("polygon");
@@ -78,15 +70,16 @@ const App = () => {
   };
 
   const setManualPolygonHandler = () => {
-    // Example coordinates for a manual polygon
     const coordinates = [
-      {lat: 20.627409436883116, lng: 78.98820288067645}, 
-      {lat: 20.628694682313736, lng: 79.04862768536395},
-      {lat: 20.587722146769398, lng: 79.04965765362567},
-      {lat: 20.58691865361481, lng: 78.99009115582294},
+      { lat: 20.627409436883116, lng: 78.98820288067645 },
+      { lat: 20.628694682313736, lng: 79.04862768536395 },
+      { lat: 20.587722146769398, lng: 79.04965765362567 },
+      { lat: 20.58691865361481, lng: 78.99009115582294 },
     ];
     setManualPolygon(coordinates);
-    //resetPolygon(); // Reset any existing polygons
+
+    const staticMarkerPosition = { lat: 20.607, lng: 79.01 }; 
+    setStaticMarker(staticMarkerPosition);
   };
 
   return (
@@ -167,6 +160,11 @@ const App = () => {
               strokeOpacity: 0.8,
               strokeWeight: 2,
             }}
+          />
+        )}
+        {staticMarker && (
+          <Marker
+            position={staticMarker}
           />
         )}
         {markers?.map((marker, idx) => (
